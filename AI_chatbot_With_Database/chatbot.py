@@ -3,7 +3,6 @@ import time
 import streamlit as st
 from groq import Groq
 from pinecone import Pinecone, ServerlessSpec
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 # ----------------------------
@@ -13,7 +12,22 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENV", "us-east-1")
-INDEX_NAME = os.getenv("INDEX_NAME", "chatbot-index")
+INDEX_NAME = os.getenv("INDEX_NAME", "chatbot-streamlit")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
+st.set_page_config(page_title="Groq + Pinecone Chatbot", page_icon="🤖", layout="wide")
+
+missing_keys = [
+    key_name
+    for key_name, key_value in (
+        ("GROQ_API_KEY", GROQ_API_KEY),
+        ("PINECONE_API_KEY", PINECONE_API_KEY),
+    )
+    if not key_value
+]
+if missing_keys:
+    st.error(f"Set {', '.join(missing_keys)} in your environment or .env file to start the chatbot.")
+    st.stop()
 
 # ----------------------------
 # Groq client
@@ -36,12 +50,13 @@ index = pc.Index(INDEX_NAME)
 # ----------------------------
 # Embeddings
 # ----------------------------
+from sentence_transformers import SentenceTransformer
+
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 # ----------------------------
 # Streamlit UI
 # ----------------------------
-st.set_page_config(page_title="Groq + Pinecone Chatbot", page_icon="🤖", layout="wide")
 
 # Inject CSS
 with open("assets/bg.css") as f:
@@ -109,7 +124,7 @@ if prompt := st.chat_input("Type your message..."):
         ] + st.session_state["messages"]
 
         stream = groq_client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model=GROQ_MODEL,
             messages=messages,
             stream=True,
         )
