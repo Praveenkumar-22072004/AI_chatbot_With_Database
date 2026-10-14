@@ -1,5 +1,7 @@
 import os
 import time
+from pathlib import Path
+
 import streamlit as st
 from groq import Groq
 from pinecone import Pinecone, ServerlessSpec
@@ -8,7 +10,8 @@ from dotenv import load_dotenv
 # ----------------------------
 # Load environment
 # ----------------------------
-load_dotenv()
+APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR / ".env")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENV = os.getenv("PINECONE_ENV", "us-east-1")
@@ -59,7 +62,7 @@ embedder = SentenceTransformer("all-MiniLM-L6-v2")
 # ----------------------------
 
 # Inject CSS
-with open("assets/bg.css") as f:
+with open(APP_DIR / "assets" / "bg.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 st.markdown(
